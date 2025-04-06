@@ -1,3 +1,4 @@
 dump/
 venv/
 .env
+.streamlit
