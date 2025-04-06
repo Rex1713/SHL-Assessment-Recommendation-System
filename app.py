@@ -12,10 +12,10 @@ from llama_index.core.response_synthesizers import CompactAndRefine
 from dotenv import load_dotenv
 
 load_dotenv()
-
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 # --- Set up Llama 4 model from Groq ---
 model_name = "meta-llama/llama-4-scout-17b-16e-instruct"
-Settings.llm = Groq(model=model_name, api_key=os.getenv("GROQ_API_KEY"))
+Settings.llm = Groq(model=model_name, api_key=st.secrets["GROQ_API_KEY"])
 
 # --- Set embedding model ---
 Settings.embed_model = FastEmbedEmbedding(model_name="BAAI/bge-large-en-v1.5")
