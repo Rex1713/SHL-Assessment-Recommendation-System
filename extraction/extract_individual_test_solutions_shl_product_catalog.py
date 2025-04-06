@@ -66,6 +66,6 @@ driver.quit()
 
 # Save data to CSV
 df = pd.DataFrame(assessments, columns=["Assessment Name", "URL", "Remote Support", "Adaptive Support", "Types"])
-df.to_csv("table2.csv", index=False)
+df.to_csv("data/individual_test_solutions_shl_product_catalog.csv", index=False)
 
-print(f"✅ Data extraction complete! {len(assessments)} items saved in 'shl_product_catalog_table2.csv'.")
+print(f"✅ Data extraction complete! {len(assessments)} items saved in 'data/individual_test_solutions_shl_product_catalog.csv'.")

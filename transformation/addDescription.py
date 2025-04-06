@@ -7,7 +7,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 # Load CSV
-df = pd.read_csv("combined_catalog.csv")
+df = pd.read_csv("data/combined_catalog.csv")
 
 # Configure Selenium WebDriver (Headless Chrome)
 chrome_options = Options()
@@ -73,9 +73,9 @@ df['Languages'] = languages
 df['Assessment Length'] = assessment_lengths
 
 # Save updated CSV
-df.to_csv("shl_product_catalog_updated.csv", index=False)
+df.to_csv("data/product_catalog_with_descriptions.csv", index=False)
 
-print("✅ Data extraction complete. File saved as 'shl_product_catalog_updated.csv'.")
+print("✅ Data extraction complete. File saved as 'data/product_catalog_with_descriptions.csv'.")
 
 # Close browser
 driver.quit()

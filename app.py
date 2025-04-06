@@ -1,3 +1,4 @@
+import streamlit as st
 import os
 import pandas as pd
 import requests
@@ -83,57 +84,77 @@ def load_shl_data_with_metadata(csv_path: str):
 
     return documents
 
-# --- Main application ---
-def main():
-    csv_path = "rex.csv"
-    persist_dir = "shl_index"
+def run_streamlit_app():
+    st.set_page_config(page_title="SHL Assessment Recommender", layout="wide")
+    st.title(" SHL Assessment Recommender")
 
-    if not os.path.exists(persist_dir):
-        print("📄 Creating new index from:", csv_path)
-        nodes = load_shl_data_with_metadata(csv_path)
-        print(f"✅ Loaded {len(nodes)} assessments.")
-        index = VectorStoreIndex(nodes)
-        index.storage_context.persist(persist_dir=persist_dir)
-        print("💾 Index saved to 'shl_index' folder.")
-    else:
-        print("📦 Loading existing index from disk...")
+    # User input
+    user_input = st.text_input("Enter a job description or a URL pointing to one:", "")
 
-    storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
-    index = load_index_from_storage(storage_context)
+    if st.button("🔍 Find Relevant Assessments") and user_input:
+        if user_input.startswith("http://") or user_input.startswith("https://"):
+            query = extract_text_from_url(user_input)
+            st.markdown("**🔍 Extracted job description from URL (preview):**")
+            st.write(query[:500] + "..." if len(query) > 500 else query)
+        else:
+            query = user_input
 
-    # --- Accept user input (either URL or text) ---
-    user_input = input("📝 Enter your query or job description URL: ").strip()
+        if not query:
+            st.error(" No valid query found.")
+            return
 
-    if user_input.startswith("http://") or user_input.startswith("https://"):
-        query = extract_text_from_url(user_input)
-        print("\n🔍 Extracted job description from URL (preview):")
-        print(query[:500] + "..." if len(query) > 500 else query)
-    else:
-        query = user_input
+        # Load index
+        csv_path = "data/shl_product_catalog.csv"
+        persist_dir = "shl_index"
 
-    if not query:
-        print("❌ No valid query found.")
-        return
+        if not os.path.exists(persist_dir):
+            nodes = load_shl_data_with_metadata(csv_path)
+            index = VectorStoreIndex(nodes)
+            index.storage_context.persist(persist_dir=persist_dir)
+        else:
+            storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
+            index = load_index_from_storage(storage_context)
 
-    # --- Run the query ---
-    query_engine = index.as_query_engine(
-        similarity_top_k=10,
-        response_mode="compact_and_refine",
-        response_synthesizer=CompactAndRefine()
-    )
-    response = query_engine.query(query)
+        # Run the query
+        query_engine = index.as_query_engine(
+            similarity_top_k=10,
+            response_mode="compact_and_refine",
+            response_synthesizer=CompactAndRefine()
+        )
+        response = query_engine.query(query)
 
-    # --- Display top 10 recommendations in tabular form ---
-    print("\n🔍 Top 5 Retrieved Nodes:")
-    for i, node in enumerate(response.source_nodes):
-        print(f"\nResult #{i+1}")
-        print(node.node.text)
-        # print("📎 Metadata:", node.node.metadata)
+        # Create table of results
+        records = []
+        for node in response.source_nodes:
+            meta = node.node.metadata
+            records.append({
+                "Assessment Name": meta["assessment_name"],
+                "Remote Support": meta["remote"],
+                "Adaptive Support": meta["adaptive"],
+                "Duration": "Untimed" if meta["duration_minutes"] == 9999 else f"{meta['duration_minutes']} mins",
+                "Type": meta["type"],
+                "URL": meta["url"]
+            })
+
+        if records:
+            df = pd.DataFrame(records)
+            
+            # Keep Assessment Name and URL in separate columns
+            df["Link"] = df["URL"].apply(lambda url: f"[Link]({url})")
+            
+            # Optionally drop the raw URL column if you only want the clickable link
+            df.drop(columns=["URL"], inplace=True)
+
+            st.markdown("###  Top Recommended Assessments")
+            st.markdown(df.to_markdown(index=False), unsafe_allow_html=True)
+        else:
+            st.warning("No relevant assessments found.")
 
 
-    print("\n🔎 Query Response:")
-    print(response)
+        # Show LLM output
+        st.markdown("###  LLM-Synthesized Summary")
+        st.markdown(response.response)
 
 
 if __name__ == "__main__":
-    main()
+    run_streamlit_app()
