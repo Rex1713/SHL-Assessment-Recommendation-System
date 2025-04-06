@@ -86,7 +86,7 @@ def load_shl_data_with_metadata(csv_path: str):
 
 def run_streamlit_app():
     st.set_page_config(page_title="SHL Assessment Recommender", layout="wide")
-    st.title(" SHL Assessment Recommender")
+    st.title("🧠 SHL Assessment Recommender")
 
     # User input
     user_input = st.text_input("Enter a job description or a URL pointing to one:", "")
@@ -100,7 +100,7 @@ def run_streamlit_app():
             query = user_input
 
         if not query:
-            st.error(" No valid query found.")
+            st.error("❌ No valid query found.")
             return
 
         # Load index
@@ -145,14 +145,14 @@ def run_streamlit_app():
             # Optionally drop the raw URL column if you only want the clickable link
             df.drop(columns=["URL"], inplace=True)
 
-            st.markdown("###  Top Recommended Assessments")
+            st.markdown("### 📋 Top Recommended Assessments")
             st.markdown(df.to_markdown(index=False), unsafe_allow_html=True)
         else:
             st.warning("No relevant assessments found.")
 
 
         # Show LLM output
-        st.markdown("###  LLM-Synthesized Summary")
+        st.markdown("### 🧠 LLM-Synthesized Summary")
         st.markdown(response.response)
 
 
