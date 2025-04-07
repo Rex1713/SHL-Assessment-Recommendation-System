@@ -17,6 +17,11 @@ os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 model_name = "meta-llama/llama-4-scout-17b-16e-instruct"
 Settings.llm = Groq(model=model_name, api_key=st.secrets["GROQ_API_KEY"])
 
+if "HUGGINGFACEHUB_API_TOKEN" in st.secrets:
+    os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
+else:
+    st.warning("Hugging Face token not found in secrets. Please add it via secrets.toml.")
+
 # --- Set embedding model ---
 Settings.embed_model = FastEmbedEmbedding(model_name="BAAI/bge-large-en-v1.5")
 
