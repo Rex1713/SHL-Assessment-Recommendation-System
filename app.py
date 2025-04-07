@@ -7,13 +7,9 @@ from llama_index.core import VectorStoreIndex, StorageContext, load_index_from_s
 from llama_index.core.schema import TextNode
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from langchain_community.embeddings import FastEmbedEmbeddings
-
-#from llama_index.core.embeddings.langchain import LangchainEmbedding
 from llama_index.core.settings import Settings
 from llama_index.llms.groq import Groq
 from llama_index.core.response_synthesizers import CompactAndRefine
-#LETS GO
-
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from dotenv import load_dotenv
 
@@ -32,8 +28,17 @@ os.environ['HUGGINGFACEHUB_API_TOKEN'] = HF_TOKEN
 # --- Set embedding model ---
 Settings.embed_model = HuggingFaceInferenceAPIEmbeddings(api_key = HF_TOKEN , model_name="BAAI/bge-large-en-v1.5")
 
-# --- Helper: Extract job description text from URL ---
+
 def extract_text_from_url(url: str) -> str:
+    """
+    Extracts textual content from all <p> tags on a given webpage.
+
+    Args:
+        url (str): The URL of the webpage containing a job description.
+
+    Returns:
+        str: Combined text from all paragraph tags or an error message if extraction fails.
+    """
     try:
         response = requests.get(url, timeout=10)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -43,8 +48,17 @@ def extract_text_from_url(url: str) -> str:
     except Exception as e:
         return f"Error extracting content from URL: {str(e)}"
 
-# --- Load SHL assessments into nodes with metadata ---
+
 def load_shl_data_with_metadata(csv_path: str):
+    """
+    Loads SHL assessments from a CSV file and converts them into TextNodes for retrieval.
+
+    Args:
+        csv_path (str): Path to the SHL product catalog CSV file.
+
+    Returns:
+        List[TextNode]: A list of TextNodes, each containing structured assessment data and metadata.
+    """
     df = pd.read_csv(csv_path)
     documents = []
 
@@ -97,22 +111,29 @@ def load_shl_data_with_metadata(csv_path: str):
     return documents
 
 def run_streamlit_app():
+    """
+    Runs the Streamlit web application for SHL Assessment Recommendation.
+
+    This function sets up the interface, handles input (either direct job description or URL),
+    loads or builds the vector index, performs semantic search using a RAG pipeline, and
+    displays the top recommended SHL assessments along with a synthesized summary.
+    """
     st.set_page_config(page_title="SHL Assessment Recommender", layout="wide")
-    st.title("🧠 SHL Assessment Recommender")
+    st.title(" SHL Assessment Recommender")
 
     # User input
     user_input = st.text_input("Enter a job description or a URL pointing to one:", "")
 
-    if st.button("🔍 Find Relevant Assessments") and user_input:
+    if st.button(" Find Relevant Assessments") and user_input:
         if user_input.startswith("http://") or user_input.startswith("https://"):
             query = extract_text_from_url(user_input)
-            st.markdown("**🔍 Extracted job description from URL (preview):**")
+            st.markdown(" Extracted job description from URL (preview):")
             st.write(query[:500] + "..." if len(query) > 500 else query)
         else:
             query = user_input
 
         if not query:
-            st.error("❌ No valid query found.")
+            st.error(" No valid query found.")
             return
 
         # Load index
@@ -151,10 +172,10 @@ def run_streamlit_app():
         if records:
             df = pd.DataFrame(records)
             
-            # Keep Assessment Name and URL in separate columns
+            
             df["Link"] = df["URL"].apply(lambda url: f"[Link]({url})")
             
-            # Optionally drop the raw URL column if you only want the clickable link
+            
             df.drop(columns=["URL"], inplace=True)
 
             st.markdown("### 📋 Top Recommended Assessments")
@@ -163,8 +184,8 @@ def run_streamlit_app():
             st.warning("No relevant assessments found.")
 
 
-        # Show LLM output
-        st.markdown("### 🧠 LLM-Synthesized Summary")
+        
+        st.markdown("###  LLM-Synthesized Summary")
         st.markdown(response.response)
 
 

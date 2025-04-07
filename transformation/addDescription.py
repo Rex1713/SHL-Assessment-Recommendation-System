@@ -6,10 +6,10 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-# Load CSV
+
 df = pd.read_csv("data/combined_catalog.csv")
 
-# Configure Selenium WebDriver (Headless Chrome)
+
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
@@ -26,7 +26,7 @@ for index, row in df.iterrows():
 
     try:
         driver.get(url)
-        time.sleep(2)  # Let the page load
+        time.sleep(2) 
 
         # Extract Description
         try:
@@ -72,10 +72,10 @@ df['Job Levels'] = job_levels
 df['Languages'] = languages
 df['Assessment Length'] = assessment_lengths
 
-# Save updated CSV
+
 df.to_csv("data/product_catalog_with_descriptions.csv", index=False)
 
-print("✅ Data extraction complete. File saved as 'data/product_catalog_with_descriptions.csv'.")
+print(" Data extraction complete. File saved as 'data/product_catalog_with_descriptions.csv'.")
 
-# Close browser
+
 driver.quit()

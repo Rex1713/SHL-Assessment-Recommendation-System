@@ -6,22 +6,35 @@ from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time
 
-# Set up headless Chrome
+
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run in headless mode
+chrome_options.add_argument("--headless")  
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--window-size=1920x1080")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-# Launch WebDriver
+
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-# List to store extracted data
-assessments = []
 
-# Function to extract data from the current page
+assessments = [] # List to store extracted data
+
+
 def extract_data():
+    """
+    Extracts assessment details from the current page of the SHL product catalog using Selenium.
+
+    This function scrapes key fields from each row such as:
+    - Assessment Name
+    - URL
+    - Remote Support availability
+    - Adaptive Support availability
+    - Assessment Types
+
+    Appends the extracted data as lists to the global `assessments` list.
+
+    """
     rows = driver.find_elements(By.XPATH, "//tr[@data-entity-id]")
     
     for row in rows:
@@ -56,15 +69,15 @@ for start in range(0, 373, 12):
 # Explicitly process the last page again (372)
 last_page_url = "https://www.shl.com/solutions/products/product-catalog/?start=372&type=1&type=1"
 driver.get(last_page_url)
-time.sleep(5)  # Ensure full load
+time.sleep(5) 
 extract_data()
 
 print(f"Total assessments extracted: {len(assessments)}")
 
-# Close WebDriver
+
 driver.quit()
 
-# Save data to CSV
+
 df = pd.DataFrame(assessments, columns=["Assessment Name", "URL", "Remote Support", "Adaptive Support", "Types"])
 df.to_csv("data/individual_test_solutions_shl_product_catalog.csv", index=False)
 
