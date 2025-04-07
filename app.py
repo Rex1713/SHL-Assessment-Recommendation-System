@@ -6,24 +6,31 @@ from bs4 import BeautifulSoup
 from llama_index.core import VectorStoreIndex, StorageContext, load_index_from_storage
 from llama_index.core.schema import TextNode
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
+from langchain_community.embeddings import FastEmbedEmbeddings
+
+#from llama_index.core.embeddings.langchain import LangchainEmbedding
 from llama_index.core.settings import Settings
 from llama_index.llms.groq import Groq
 from llama_index.core.response_synthesizers import CompactAndRefine
+#LETS GO
+
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from dotenv import load_dotenv
 
 load_dotenv()
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 # --- Set up Llama 4 model from Groq ---
 model_name = "meta-llama/llama-4-scout-17b-16e-instruct"
-Settings.llm = Groq(model=model_name, api_key=st.secrets["GROQ_API_KEY"])
+Settings.llm = Groq(model=model_name, api_key=os.getenv("GROQ_API_KEY"))
 
 if "HUGGINGFACEHUB_API_TOKEN" in st.secrets:
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 else:
     st.warning("Hugging Face token not found in secrets. Please add it via secrets.toml.")
-
+HF_TOKEN = st.secrets['HUGGINGFACEHUB_API_TOKEN']
+os.environ['HUGGINGFACEHUB_API_TOKEN'] = HF_TOKEN
 # --- Set embedding model ---
-Settings.embed_model = FastEmbedEmbedding(model_name="BAAI/bge-large-en-v1.5")
+Settings.embed_model = HuggingFaceInferenceAPIEmbeddings(api_key = HF_TOKEN , model_name="BAAI/bge-large-en-v1.5")
 
 # --- Helper: Extract job description text from URL ---
 def extract_text_from_url(url: str) -> str:
