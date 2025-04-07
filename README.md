@@ -103,4 +103,51 @@ Results shown in a table in Streamlit:
 
 ---
 
+## 🚀 Steps to Run Locally
 
+Follow these steps to set up and run the SHL Assessment Recommendation System locally:
+
+### 1. Clone the Repository
+bash
+git clone https://github.com/yourusername/shl-assessment-recommender.git
+cd shl-assessment-recommender
+
+Markdown
+
+🚀 Steps to Run Locally
+
+Follow these steps to set up and run the SHL Assessment Recommendation System locally:
+
+### 1. Clone the Repository
+
+git clone [https://github.com/yourusername/shl-assessment-recommender.git](https://github.com/yourusername/shl-assessment-recommender.git)
+cd shl-assessment-recommender
+2. Create and Activate Virtual Environment
+Bash
+
+python3 -m venv venv
+source venv/bin/activate  # On Linux/macOS
+# venv\Scripts\activate  # On Windows
+3. Install Python Dependencies
+Bash
+
+pip install -r requirements.txt
+4. Set Environment Variables (Optional)
+Create a .env file in the root directory and add your API keys if required:
+
+Ini, TOML
+
+GROQ_API_KEY=your_key_here
+HUGGINGFACE_API_TOKEN=your_token_here
+5. Run the FastAPI Backend
+Bash
+
+uvicorn api:app --reload
+6. (Optional) Expose API via ngrok
+Bash
+
+ngrok http 8000
+7. Launch Streamlit App
+Bash
+
+streamlit run streamlit_app.py
