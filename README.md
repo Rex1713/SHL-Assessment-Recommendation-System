@@ -1,3 +1,8 @@
+
+# Project Title
+
+A brief description of what this project does and who it's for
+
 # 🧠 SHL Assessment Recommendation System
 
 An AI-powered system that recommends SHL assessments based on natural language job descriptions. Built using Retrieval-Augmented Generation (RAG), FastAPI, LlamaIndex, and deployed via Streamlit.
@@ -118,36 +123,32 @@ Markdown
 
 Follow these steps to set up and run the SHL Assessment Recommendation System locally:
 
-### 1. Clone the Repository
+## 1. Clone the Repository
 
-git clone [https://github.com/yourusername/shl-assessment-recommender.git](https://github.com/yourusername/shl-assessment-recommender.git)
+git clone [https://github.com/rex1713/shl-assessment-recommender.git](https://github.com/yourusername/shl-assessment-recommender.git)
 cd shl-assessment-recommender
-2. Create and Activate Virtual Environment
-Bash
+## 2. Create and Activate Virtual Environment
 
 python3 -m venv venv
 source venv/bin/activate  # On Linux/macOS
-# venv\Scripts\activate  # On Windows
-3. Install Python Dependencies
-Bash
+ venv\Scripts\activate  # On Windows
+## 3. Install Python Dependencies
+
 
 pip install -r requirements.txt
-4. Set Environment Variables (Optional)
+## 4. Set Environment Variables (Optional)
 Create a .env file in the root directory and add your API keys if required:
 
-Ini, TOML
 
 GROQ_API_KEY=your_key_here
 HUGGINGFACE_API_TOKEN=your_token_here
-5. Run the FastAPI Backend
-Bash
+## 5. Run the FastAPI Backend
+
 
 uvicorn api:app --reload
-6. (Optional) Expose API via ngrok
-Bash
+## 6. (Optional) Expose API via ngrok
 
 ngrok http 8000
-7. Launch Streamlit App
-Bash
+## 7. Launch Streamlit App
 
 streamlit run streamlit_app.py
