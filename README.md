@@ -108,18 +108,9 @@ Results shown in a table in Streamlit:
 
 ---
 
+
+
 ## 🚀 Steps to Run Locally
-
-Follow these steps to set up and run the SHL Assessment Recommendation System locally:
-
-### 1. Clone the Repository
-bash
-git clone https://github.com/yourusername/shl-assessment-recommender.git
-cd shl-assessment-recommender
-
-Markdown
-
-🚀 Steps to Run Locally
 
 Follow these steps to set up and run the SHL Assessment Recommendation System locally:
 
