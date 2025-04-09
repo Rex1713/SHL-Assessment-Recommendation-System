@@ -5,7 +5,6 @@ import requests
 from bs4 import BeautifulSoup
 from llama_index.core import VectorStoreIndex, StorageContext, load_index_from_storage
 from llama_index.core.schema import TextNode
-from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from langchain_community.embeddings import FastEmbedEmbeddings
 from llama_index.core.settings import Settings
 from llama_index.llms.groq import Groq
@@ -102,7 +101,8 @@ def load_shl_data_with_metadata(csv_path: str):
             "remote": remote,
             "adaptive": adaptive,
             "job_levels": job_levels,
-            "url": url
+            "url": url,
+            "description" : description
         }
 
         node = TextNode(text=text.strip(), metadata=metadata)
@@ -148,6 +148,8 @@ def run_streamlit_app():
             storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
             index = load_index_from_storage(storage_context)
 
+
+
         # Run the query
         query_engine = index.as_query_engine(
             similarity_top_k=10,
@@ -158,33 +160,51 @@ def run_streamlit_app():
 
         # Create table of results
         records = []
+        has_edge_duration = False
+
         for node in response.source_nodes:
             meta = node.node.metadata
+            raw_duration = meta["duration_minutes"]
+
+            if raw_duration == 9999:
+                duration_display = 0
+                has_edge_duration = True
+            elif raw_duration == -1:
+                duration_display = 0
+                has_edge_duration = True
+            else:
+                duration_display = raw_duration
+
+            # st.write(meta)
             records.append({
                 "Assessment Name": meta["assessment_name"],
+                "Description": meta["description"],
                 "Remote Support": meta["remote"],
                 "Adaptive Support": meta["adaptive"],
-                "Duration": "Untimed" if meta["duration_minutes"] == 9999 else f"{meta['duration_minutes']} mins",
+                "Duration(mins)": duration_display,
                 "Type": meta["type"],
                 "URL": meta["url"]
             })
+
 
         if records:
             df = pd.DataFrame(records)
             
             
-            df["Link"] = df["URL"].apply(lambda url: f"[Link]({url})")
+            # df["Link"] = df["URL"].apply(lambda url: f"[Link]({url})")
             
             
-            df.drop(columns=["URL"], inplace=True)
+            # df.drop(columns=["URL"], inplace=True)
 
-            st.markdown("### 📋 Top Recommended Assessments")
+            st.markdown("###  Top Recommended Assessments")
             st.markdown(df.to_markdown(index=False), unsafe_allow_html=True)
         else:
             st.warning("No relevant assessments found.")
 
 
-        
+        if has_edge_duration:
+            st.info("ℹ️ Some assessments are marked have duration as 0 minutes which indicates that they might be Untimed or have variable time limit \n Please visit the particular link for more information.")
+
         st.markdown("###  LLM-Synthesized Summary")
         st.markdown(response.response)
 

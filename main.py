@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 import os
 import pandas as pd
@@ -27,9 +27,14 @@ Settings.embed_model = HuggingFaceInferenceAPIEmbeddings(api_key=HF_TOKEN, model
 # FastAPI app
 app = FastAPI(title="SHL Assessment Recommender API")
 
-# Pydantic model for input
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+# Request model for /recommend
 class QueryRequest(BaseModel):
-    query: str  # can be raw text or a URL
+    query: str
 
 # Extract text from URL if necessary
 def extract_text_from_url(url: str) -> str:
@@ -58,21 +63,14 @@ def load_shl_data_with_metadata(csv_path: str):
 
         try:
             minutes = int(float(raw_duration))
-            if minutes == 9999:
-                duration_clean = "Untimed"
-            elif minutes == -1:
-                duration_clean = "Variable"
-            else:
-                duration_clean = f"{minutes} minutes"
         except ValueError:
-            duration_clean = "Variable"
             minutes = -1
 
         text = f"""
         Assessment: {assessment_name}
         Description: {description}
         Type: {assessment_type}
-        Duration: {duration_clean}
+        Duration: {raw_duration}
         Remote: {remote}
         Adaptive: {adaptive}
         Job Levels: {job_levels}
@@ -85,9 +83,8 @@ def load_shl_data_with_metadata(csv_path: str):
             "duration_minutes": minutes,
             "remote": remote,
             "adaptive": adaptive,
-            "job_levels": job_levels,
-            "url": url,
-            "description": description
+            "description": description,
+            "url": url
         }
 
         node = TextNode(text=text.strip(), metadata=metadata)
@@ -112,46 +109,39 @@ query_engine = index.as_query_engine(
     response_synthesizer=CompactAndRefine()
 )
 
-# Health check endpoint
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
-
-# Recommend endpoint with POST method
+# Updated POST /recommend
 @app.post("/recommend")
-async def recommend_assessments(req: QueryRequest):
-    query = req.query
+async def recommend_assessments(request: QueryRequest):
+    query = request.query
 
     if query.startswith("http://") or query.startswith("https://"):
         query = extract_text_from_url(query)
         if query.startswith("Error"):
-            return {"error": query}
+            return {"recommended_assessments": []}
 
-    # Perform the query
     response = query_engine.query(query)
-    records = []
+    assessments = []
 
     for node in response.source_nodes:
         meta = node.node.metadata
-        duration = meta.get("duration_minutes", 10)
-        try:
-            duration = int(duration)
-        except:
-            duration = 10
+        duration_minutes = meta.get("duration_minutes", -1)
 
-        records.append({
+        # Only allow integer durations
+        if duration_minutes in (-1, 9999):
+            duration_minutes = 0
+
+        assessments.append({
             "url": meta.get("url", ""),
             "adaptive_support": "Yes" if str(meta.get("adaptive", "")).strip().lower() == "yes" else "No",
             "description": meta.get("description", ""),
-            "duration": max(1, duration),
+            "duration": duration_minutes,
             "remote_support": "Yes" if str(meta.get("remote", "")).strip().lower() == "yes" else "No",
             "test_type": [t.strip() for t in str(meta.get("type", "")).split(",") if t.strip()]
         })
 
     return {
-        "recommended_assessments": records[:10]
+        "recommended_assessments": assessments[:10]
     }
-
 
 if __name__ == "__main__":
     import uvicorn
