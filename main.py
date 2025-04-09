@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from typing import List
 from llama_index.core import VectorStoreIndex, StorageContext, load_index_from_storage
 from llama_index.core.schema import TextNode
-from llama_index.embeddings.fastembed import FastEmbedEmbedding
+
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from llama_index.llms.groq import Groq
 from llama_index.core.settings import Settings
