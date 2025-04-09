@@ -1,23 +1,26 @@
-# Use a lightweight Python image
 FROM python:3.13-slim
+
+# Set environment vars
+ENV PYTHONUNBUFFERED=1
 
 # Set working directory
 WORKDIR /app
 
-# Copy only requirements first (for caching)
-COPY requirements.txt .
+# Install system dependencies for building packages like numpy, pandas, etc.
+RUN apt-get update && \
+    apt-get install -y build-essential gcc g++ libffi-dev libpq-dev curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the app
+# Copy rest of the code
 COPY . .
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-
-# Expose port for Cloud Run
+# Expose the port used by your FastAPI app
 EXPOSE 8080
 
-# Run the FastAPI app using Uvicorn
+# Run the FastAPI app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
